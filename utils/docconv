@@ -17,4 +17,8 @@ while :; do
     esac
 done
 
+[ -n "$FILE" ] || die "Please specify a file to convert"
+[ -e "$FILE" ] || die "File '$1' not found"
+[ -f "$FILE" ] || die "'$1' is not a file"
+
 pandoc "$FILE" --pdf-engine=pdflatex -o "$BASE"."$FOUT"
