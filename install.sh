@@ -36,6 +36,15 @@ install_util () {
     printf "Done\n"
 }
 
+print_help () {
+    echo "Install mashup utils
+
+-a  --all       Add all utils to targets
+-i  --install   Install util(s)
+-r  --remove    Remove/uninstall util(s)
+-l  --library   Add library to targets"
+}
+
 uninstall_all () {
     for util in $utils; do
         uninstall_util "$util"
@@ -70,9 +79,10 @@ utils="$(find utils/* -type f)"
 while :; do
     case $1 in
         -a | --all) ALL=1; shift ;;
+        -h | --help) print_help; exit ;;
         -i | --install) INSTALL=1; shift ;;
-        -r | --remove) UNINSTALL=1; shift ;;
         -l | --library) LIBRARY=1; shift ;;
+        -r | --remove) UNINSTALL=1; shift ;;
         *) break ;;
     esac
 done

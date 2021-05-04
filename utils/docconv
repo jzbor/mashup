@@ -2,9 +2,20 @@
 
 . __LIB_FILE__ || exit 1
 
-FILE=$(readlink -f "$1")
+HELPTEXT="Converts a file (first argument) into a specified format (second argument)"
+
+FILE=$(readlink -f "$1" 2> /dev/null)
 DIR=$(dirname "$FILE")
 BASE="${FILE%.*}"
 FOUT="$2"
+
+
+# parse arguments
+while :; do
+    case $1 in
+        -h | --help) print_help; exit ;;
+        *) break ;;
+    esac
+done
 
 pandoc "$FILE" --pdf-engine=pdflatex -o "$BASE"."$FOUT"

@@ -29,3 +29,9 @@ check_optional_dependency () {
 print_header () {
     printf "$CC_BLUE=== %s ===$CC_RESET\n" "$1"
 }
+
+print_help () {
+    printf "\n"
+    print_header "Help: $(basename "$0")"
+    printf "\n%s\n\n" "$HELPTEXT"
+}
