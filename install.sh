@@ -1,11 +1,14 @@
 #!/bin/sh
 
 PREFIX="${PREFIX:-$HOME/.local}"
+LIB_FILE_LOCAL="mashup-lib.sh"
+LIB_FILE="${PREFIX}/lib/${LIB_FILE_LOCAL}"
 
 # input variables
 ALL=0
-INSTALL=0
+INSTALL=1
 UNINSTALL=0
+LIBRARY=0
 
 die () {
     echo "$1" > /dev/stderr
@@ -18,10 +21,18 @@ install_all () {
     done
 }
 
+install_lib () {
+    printf "Installing lib file %s... " "$LIB_FILE_LOCAL"
+    install -Dm 555 "$LIB_FILE_LOCAL" "$LIB_FILE"
+    printf "Done\n"
+}
+
 install_util () {
-    printf "Installing %s... " "$1"
+    name="$(basename "$1")"
+    printf "Installing %s... " "$name"
     install -Dm 755 "$1" "$PREFIX/bin/" \
         || die "unable to install $util"
+    sed -i "s|__LIB_FILE__|${LIB_FILE}|g" "$PREFIX/bin/$name"
     printf "Done\n"
 }
 
@@ -31,9 +42,15 @@ uninstall_all () {
     done
 }
 
-uninstall_util () {
-    printf "Uninstalling %s... " "$1"
+uninstall_lib () {
+    printf "Uninstalling lib file %s... " "$LIB_FILE_LOCAL"
+    rm -f "$LIB_FILE"
+    printf "Done\n"
+}
 
+uninstall_util () {
+    name="$(basename "$1")"
+    printf "Uninstalling %s... " "$name"
     if ! [ -f "${PREFIX:?}/bin/$1" ]; then
         printf "Not found\n"
         return
@@ -55,6 +72,7 @@ while :; do
         -a | --all) ALL=1; shift ;;
         -i | --install) INSTALL=1; shift ;;
         -r | --remove) UNINSTALL=1; shift ;;
+        -l | --library) LIBRARY=1; shift ;;
         *) break ;;
     esac
 done
@@ -62,18 +80,22 @@ done
 if [ "$INSTALL" = 1 ]; then
     if [ "$ALL" = 1 ]; then
         install_all
+        install_lib
     else
         for util in "$@"; do
             install_util "$util"
         done
+        [ "$LIBRARY" = 1 ] && install_lib
     fi
 elif [ "$UNINSTALL" = 1 ]; then
     if [ "$ALL" = 1 ]; then
         uninstall_all
+        uninstall_lib
     else
         for util in "$@"; do
             uninstall_util "$util"
         done
+        [ "$LIBRARY" = 1 ] && uninstall_lib
     fi
 else
     die "No actions specified"
