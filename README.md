@@ -14,3 +14,4 @@
 
 ## Resources
 * [POSIX Shell manual](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
+* [Rick's sh (POSIX shell) tricks](https://www.etalabs.net/sh_tricks.html)

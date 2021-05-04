@@ -1,0 +1,6 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+print_header "This is a header"
+die "Successfully dying"
