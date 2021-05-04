@@ -3,7 +3,6 @@
 . __LIB_FILE__ || exit 1
 
 HELPTEXT="Converts a file (first argument) into a specified format (second argument)"
-
 FILE=$(readlink -f "$1" 2> /dev/null)
 DIR=$(dirname "$FILE")
 BASE="${FILE%.*}"
