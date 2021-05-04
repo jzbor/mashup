@@ -2,8 +2,14 @@
 
 . __LIB_FILE__ || exit 1
 
-HELPTEXT="Refreshes mirrors of pacman based distros"
+HELPTEXT="Refreshes mirrors of pacman based distros
+
+    -e  --edit      Edit mirrorlist before ranking
+    -m  --main      Only fetch main mirrors (no Arch mirrors on Artix)
+    -h  --help      This help message"
 TEMP_MIRRORLIST="${TEMP:-/tmp}/pacmirrorlist"
+EDIT=0
+MAIN_ONLY=0
 
 
 manjaro () {
@@ -16,6 +22,10 @@ regular () {
     echo "Downloading from $MIRRORURL"
     curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" || exit 1
     sed -i 's/#S/S/g' "$TEMP_MIRRORLIST" || exit 1
+
+    if [ "$EDIT" = 1 ]; then
+        ${EDITOR:?} "$TEMP_MIRRORLIST"
+    fi
 
     print_header "Ranking mirrors"
     echo "This may take some while..."
@@ -35,11 +45,19 @@ regular () {
     sudo mv -v "$TEMP_MIRRORLIST.fastest" "${DEST:-/etc/pacman.d/mirrorlist}" || exit 1
 }
 
-if [ -f "/etc/os-release" ]; then
-    . /etc/os-release
-else
-    die "No OS information available"
-fi
+
+# parse arguments
+while :; do
+    case $1 in
+        -e | --edit) EDIT=1; shift ;;
+        -m | --main) MAIN_ONLY=1; shift ;;
+        -h | --help) print_help; exit ;;
+        *) break ;;
+    esac
+done
+
+. /etc/os-release \
+    || die "No OS information available"
 
 REPOSITORY="$ID"
 
@@ -50,10 +68,12 @@ case $ID in
     artix)
         MIRRORURL="https://gitea.artixlinux.org/packagesA/artix-mirrorlist/raw/branch/master/trunk/mirrorlist"
         regular
-        REPOSITORY="arch"
-        MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
-        DEST="${DEST:-/etc/pacman.d/mirrorlist}-arch"
-        regular
+        if [ "$MAIN_ONLY" != 1 ]; then
+            REPOSITORY="arch"
+            MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
+            DEST="${DEST:-/etc/pacman.d/mirrorlist}-arch"
+            regular
+        fi
         ;;
     arch)
         MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
@@ -64,5 +84,5 @@ case $ID in
         ;;
 esac
 
-printf "$praefix Update Pacman database and packages $suffix"
+print_header "Update Pacman database and packages"
 sudo pacman -Syyu
