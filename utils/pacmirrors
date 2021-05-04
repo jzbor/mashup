@@ -4,27 +4,35 @@
 
 HELPTEXT="Refreshes mirrors of pacman based distros
 
-    -e  --edit      Edit mirrorlist before ranking
-    -m  --main      Only fetch main mirrors (no Arch mirrors on Artix)
-    -h  --help      This help message"
+    -d  --dontreplace   Don't replace current mirrorlist
+    -e  --edit          Edit mirrorlist before ranking
+    -h  --help          This help message
+    -m  --main          Only fetch main mirrors (no Arch mirrors on Artix)
+    -r  --replace       Replace current mirrorlist"
 TEMP_MIRRORLIST="${TEMP:-/tmp}/pacmirrorlist"
 EDIT=0
 MAIN_ONLY=0
+REPLACE=0
+DONT_REPLACE=0
+REPOS_UPDATED=0
 
 
 manjaro () {
     print_header "Running Manjaro's pacman-mirrors"
-    sudo pacman-mirrors --fasttrack || exit 1
+    sudo pacman-mirrors --fasttrack || return
+    REPOS_UPDATED=1
 }
 
 regular () {
     print_header "Downloading mirrorlist [$REPOSITORY]"
     echo "Downloading from $MIRRORURL"
     curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" || exit 1
-    sed -i 's/#S/S/g' "$TEMP_MIRRORLIST" || exit 1
 
     if [ "$EDIT" = 1 ]; then
         ${EDITOR:?} "$TEMP_MIRRORLIST"
+    else
+        echo "Using all available mirrors for ranking"
+        sed -i 's/#S/S/g' "$TEMP_MIRRORLIST" || exit 1
     fi
 
     print_header "Ranking mirrors"
@@ -36,22 +44,29 @@ regular () {
         rankmirrors -v "$TEMP_MIRRORLIST" | tee "$TEMP_MIRRORLIST.fastest" || exit 1
     fi
 
-    print_header "Replace current mirrorlist?"
-    read -p "(y/N) " answer
-    case $answer in
-        y | Y | yes | Yes) ;;
-        *) exit ;;
-    esac
+    [ "$DONT_REPLACE" = 1 ] && return
+    print_header "Install new mirrorlist"
+    if [ "$REPLACE" != 1 ]; then
+        print_header "Replace current mirrorlist?"
+        read -p "(y/N) " answer
+        case $answer in
+            y | Y | yes | Yes) ;;
+            *) return ;;
+        esac
+    fi
     sudo mv -v "$TEMP_MIRRORLIST.fastest" "${DEST:-/etc/pacman.d/mirrorlist}" || exit 1
+    REPOS_UPDATED=1
 }
 
 
 # parse arguments
 while :; do
     case $1 in
+        -d | --dontreplace) DONT_REPLACE=1; shift ;;
         -e | --edit) EDIT=1; shift ;;
-        -m | --main) MAIN_ONLY=1; shift ;;
         -h | --help) print_help; exit ;;
+        -m | --main) MAIN_ONLY=1; shift ;;
+        -r | --replace) REPLACE=1; shift ;;
         *) break ;;
     esac
 done
@@ -84,5 +99,7 @@ case $ID in
         ;;
 esac
 
-print_header "Update Pacman database and packages"
-sudo pacman -Syyu
+if [ "$REPOS_UPDATED" = 1 ]; then
+    print_header "Update Pacman database and packages"
+    sudo pacman -Syyu
+fi
