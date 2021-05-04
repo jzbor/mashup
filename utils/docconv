@@ -1,0 +1,10 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+FILE=$(readlink -f "$1")
+DIR=$(dirname "$FILE")
+BASE="${FILE%.*}"
+FOUT="$2"
+
+pandoc "$FILE" --pdf-engine=pdflatex -o "$BASE"."$FOUT"
