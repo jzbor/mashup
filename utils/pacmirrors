@@ -1,0 +1,68 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Refreshes mirrors of pacman based distros"
+TEMP_MIRRORLIST="${TEMP:-/tmp}/pacmirrorlist"
+
+
+manjaro () {
+    print_header "Running Manjaro's pacman-mirrors"
+    sudo pacman-mirrors --fasttrack || exit 1
+}
+
+regular () {
+    print_header "Downloading mirrorlist [$REPOSITORY]"
+    echo "Downloading from $MIRRORURL"
+    curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" || exit 1
+    sed -i 's/#S/S/g' "$TEMP_MIRRORLIST" || exit 1
+
+    print_header "Ranking mirrors"
+    echo "This may take some while..."
+    echo
+    if [ "$REPOSITORY" = "arch" ]; then
+        rankmirrors-arch -v "$TEMP_MIRRORLIST" | tee "$TEMP_MIRRORLIST.fastest" || exit 1
+    else
+        rankmirrors -v "$TEMP_MIRRORLIST" | tee "$TEMP_MIRRORLIST.fastest" || exit 1
+    fi
+
+    print_header "Replace current mirrorlist?"
+    read -p "(y/N) " answer
+    case $answer in
+        y | Y | yes | Yes) ;;
+        *) exit ;;
+    esac
+    sudo mv -v "$TEMP_MIRRORLIST.fastest" "${DEST:-/etc/pacman.d/mirrorlist}" || exit 1
+}
+
+if [ -f "/etc/os-release" ]; then
+    . /etc/os-release
+else
+    die "No OS information available"
+fi
+
+REPOSITORY="$ID"
+
+case $ID in
+    manjaro)
+        manjaro
+        ;;
+    artix)
+        MIRRORURL="https://gitea.artixlinux.org/packagesA/artix-mirrorlist/raw/branch/master/trunk/mirrorlist"
+        regular
+        REPOSITORY="arch"
+        MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
+        DEST="${DEST:-/etc/pacman.d/mirrorlist}-arch"
+        regular
+        ;;
+    arch)
+        MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
+        regular
+        ;;
+    *)
+        die "Your distro seems to not be supported ($NAME)"
+        ;;
+esac
+
+printf "$praefix Update Pacman database and packages $suffix"
+sudo pacman -Syyu
