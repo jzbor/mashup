@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Cleans up the leftovers of a tex compilation"
+ENDINGS="4tc aux bbl bcf blg fdb_latexmk fls idx lof log lot maf mtc mtc0 nav pyc pyg pyo snm swp tmp vrb xref"
+ESCAPED_ENDINGS="$(echo "$ENDINGS" | sed 's/\s/\\|/g')"
+load_file "$1"
+check_file
+
+
+echo "Removing files:"
+find "$FILEDIR" -maxdepth 1 -type f -regex "^$FILEDIR/$BASENAME\.\($ESCAPED_ENDINGS\)$"
+find "$FILEDIR" -maxdepth 1 -type f -regex "^$FILEDIR/$BASENAME\.\($ESCAPED_ENDINGS\)$" -delete
