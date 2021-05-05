@@ -263,7 +263,3 @@ if __name__ == '__main__':
     FORCE_REFRESH_CACHE = args.force_refresh_cache
     load_desktop_files()
     format_xmenu(applications)
-
-# for app in applications:
-#     if app.name == 'Spotify':
-#         print(app.categories)
