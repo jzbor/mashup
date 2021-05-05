@@ -1,4 +1,7 @@
 #!/bin/python3
+#
+# Original version by OliverLew: https://github.com/OliverLew/xdg-xmenu
+#
 
 from pathlib import Path
 import argparse
