@@ -26,6 +26,19 @@ check_optional_dependency () {
     command -v "$1" > /dev/null
 }
 
+load_file () {
+    FILE=$(readlink -f "$1" 2> /dev/null)
+    FILEDIR=$(dirname "$FILE")
+    FILENAME=$(basename "$FILE")
+    BASENAME="${FILENAME%.*}"
+}
+
+check_file () {
+    [ -n "${FILE:-$1}" ] || die "No file specified"
+    [ -e "${FILE:-$1}" ] || die "File '${FILE:-$1}' not found"
+    [ -f "${FILE:-$1}" ] || die "'${FILE:-$1}' is not a file"
+}
+
 print_header () {
     printf "\n$CC_BLUE=== %s ===$CC_RESET\n" "$1"
 }

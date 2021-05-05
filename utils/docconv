@@ -3,10 +3,8 @@
 . __LIB_FILE__ || exit 1
 
 HELPTEXT="Converts a file (first argument) into a specified format (second argument)"
-FILE=$(readlink -f "$1" 2> /dev/null)
-DIR=$(dirname "$FILE")
-BASE="${FILE%.*}"
 FOUT="$2"
+load_file "$1"
 
 
 # parse arguments
@@ -17,8 +15,6 @@ while :; do
     esac
 done
 
-[ -n "$FILE" ] || die "Please specify a file to convert"
-[ -e "$FILE" ] || die "File '$1' not found"
-[ -f "$FILE" ] || die "'$1' is not a file"
+check_file
 
-pandoc "$FILE" --pdf-engine=pdflatex -o "$BASE"."$FOUT"
+pandoc "$FILE" --pdf-engine=pdflatex -o "$FILEDIR/$BASENAME.$FOUT"
