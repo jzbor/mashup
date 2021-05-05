@@ -15,6 +15,7 @@ while :; do
     esac
 done
 
+check_dependency pandoc
 check_file
 
 pandoc "$FILE" --pdf-engine=pdflatex -o "$FILEDIR/$BASENAME.$FOUT"

@@ -26,6 +26,20 @@ check_optional_dependency () {
     command -v "$1" > /dev/null
 }
 
+env_is_set () {
+    env | grep "^$1=" > /dev/null
+}
+
+# for settings that default to false
+env_def_false () {
+    env_is_set "$1" && [ "$(eval echo "\$$1")" = "1" ]
+}
+
+# for settings that default to true
+env_def_true () {
+    (! env_is_set "$1") || [ "$(eval echo "\$$1")" = "1" ]
+}
+
 load_file () {
     FILE=$(readlink -f "$1" 2> /dev/null)
     FILEDIR=$(dirname "$FILE")
