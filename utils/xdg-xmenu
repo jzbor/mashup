@@ -15,6 +15,7 @@ APPLICATION_DIRS    = set([os.path.join(dir, 'applications') for dir in XDG_DATA
 CACHE_DIR           = os.path.join(os.getenv('XDG_CACHE_HOME',
                         os.path.join(os.getenv('HOME'), '.cache')), 'xdg-xmenu-py')
 MULTIPLE_CATEGORIES = True
+PRINT_IMAGES        = True
 SORT_BY_CATEGORY    = True
 COMPILE_IMAGES      = True
 FORCE_REFRESH_CACHE = False
@@ -50,7 +51,7 @@ class Application:
 
     def format(self):
         out = ''
-        if self.iconpath != '':
+        if PRINT_IMAGES and self.iconpath != '':
             out += 'IMG:{}\t'.format(self.iconpath)
         out += self.name
         if self.genname != '':
@@ -201,21 +202,24 @@ def format_xmenu(applications):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate application menu in xmenu format')
-    parser.add_argument('-m', '--multiple', help='Add applications to multiple categories',
-                        action='store_true', dest='multiple_categories')
-    parser.add_argument('-a', '--applications', help='Don\'t sort applications by category',
+    parser.add_argument('-a', '--applications', help='don\'t sort applications by category',
                         action='store_false', dest='sort_by_category')
-    parser.add_argument('-l', '--lazy', help='Don\'t compile images on demand (this is way faster)',
-                        action='store_false', dest='compile_images')
-    parser.add_argument('-f', '--force', help='Force refresh image cache',
+    parser.add_argument('-f', '--force', help='force refresh image cache',
                         action='store_true', dest='force_refresh_cache')
+    parser.add_argument('-l', '--lazy', help='don\'t compile images on demand (this is way faster)',
+                        action='store_false', dest='compile_images')
+    parser.add_argument('-m', '--multiple', help='add applications to multiple categories',
+                        action='store_true', dest='multiple_categories')
+    parser.add_argument('-t', '--text', help='no image output (implies -l)',
+                        action='store_false', dest='print_images')
     return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
     MULTIPLE_CATEGORIES = args.multiple_categories
     SORT_BY_CATEGORY = args.sort_by_category
-    COMPILE_IMAGES = args.compile_images
+    COMPILE_IMAGES = args.compile_images and args.print_images
+    PRINT_IMAGES = args.print_images
     FORCE_REFRESH_CACHE = args.force_refresh_cache
     load_desktop_files()
     format_xmenu(applications)
