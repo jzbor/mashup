@@ -1,7 +1,11 @@
 #!/bin/python3
 
+from pathlib import Path
+import argparse
 import os, os.path
 import shutil
+import subprocess
+import sys
 
 XDG_DATA_HOME       = os.getenv('XDG_DATA_HOME', os.path.join(os.getenv('HOME'), '.local/share'))
 XDG_CONFIG_HOME     = os.getenv('XDG_CONFIG_HOME', os.path.join(os.getenv('HOME'), '.config'))
@@ -12,9 +16,11 @@ CACHE_DIR           = os.path.join(os.getenv('XDG_CACHE_HOME',
                         os.path.join(os.getenv('HOME'), '.cache')), 'xdg-xmenu-py')
 MULTIPLE_CATEGORIES = True
 SORT_BY_CATEGORY    = True
-COMPILE_IMAGES      = False
-FORCE_REFRESH_CACHE = True
+COMPILE_IMAGES      = True
+FORCE_REFRESH_CACHE = False
 
+imagefiles = []
+icontheme = ''
 applications = []
 categories= {
     "Multimedia": set(),
@@ -79,8 +85,8 @@ def load_icon(name, ext, path):
     if ext in ('png'):
         shutil.copyfile(path, dest)
     else:
-        print("convert {} {}".format(path, dest))
-        os.system("convert {} -alpha on {}".format(path, dest))
+        proc = subprocess.Popen(['convert', path, '-alpha', 'on', dest], stdout=subprocess.PIPE)
+        proc.wait()
     if os.path.isfile(dest):
         return dest
     else:
@@ -88,15 +94,28 @@ def load_icon(name, ext, path):
 
 
 def set_icon(app):
+    global imagefiles, icontheme
     name = app.iconname
-    if not FORCE_REFRESH_CACHE and os.path.isfile(os.path.join(CACHE_DIR, name + '.png')):
+    if not FORCE_REFRESH_CACHE and (os.path.isfile(os.path.join(CACHE_DIR, name + '.png'))):
         app.iconpath = os.path.join(CACHE_DIR, name + '.png')
+    elif not FORCE_REFRESH_CACHE and (os.path.isfile(os.path.join(CACHE_DIR, name + '.notfound'))):
+        pass
     elif COMPILE_IMAGES or FORCE_REFRESH_CACHE:
+        image_found = False
+        if imagefiles == []:
+            imagefiles = get_image_files()
+        if icontheme == '':
+            icontheme = get_icon_theme()
         for imagefile in imagefiles:
             for ext in ['png', 'svg']:
-                if imagefile.endswith('{}.{}'.format(name, ext)) \
+                if imagefile.endswith('/{}.{}'.format(name, ext)) \
                         and (app.iconpath == '' or icontheme in imagefile):
                     app.iconpath = load_icon(name, ext, imagefile)
+                    print("{}.png <= {}".format(name, imagefile), file=sys.stderr)
+                    image_found = True
+        if not image_found:
+            Path(os.path.join(CACHE_DIR, name + '.notfound')).touch()
+            print("=> {}.notfound".format(name), file=sys.stderr)
 
 
 def dict_to_application(dictionary:dict):
@@ -106,7 +125,7 @@ def dict_to_application(dictionary:dict):
     if 'GenericName' in dictionary:
         app.genname = dictionary['GenericName']
     if 'Icon' in dictionary:
-        app.iconname = dictionary['Icon']
+        app.iconname = os.path.basename(dictionary['Icon'])
         set_icon(app)
     if 'Categories' in dictionary:
         app.categories = dictionary['Categories'].split(';')
@@ -180,12 +199,26 @@ def format_xmenu(applications):
             print(app.format())
 
 
-if COMPILE_IMAGES or FORCE_REFRESH_CACHE:
-    imagefiles = get_image_files()
-    icontheme = get_icon_theme()
+def parse_args():
+    parser = argparse.ArgumentParser(description='Generate application menu in xmenu format')
+    parser.add_argument('-m', '--multiple', help='Add applications to multiple categories',
+                        action='store_true', dest='multiple_categories')
+    parser.add_argument('-a', '--applications', help='Don\'t sort applications by category',
+                        action='store_false', dest='sort_by_category')
+    parser.add_argument('-l', '--lazy', help='Don\'t compile images on demand (this is way faster)',
+                        action='store_false', dest='compile_images')
+    parser.add_argument('-f', '--force', help='Force refresh image cache',
+                        action='store_true', dest='force_refresh_cache')
+    return parser.parse_args()
 
-load_desktop_files()
-format_xmenu(applications)
+if __name__ == '__main__':
+    args = parse_args()
+    MULTIPLE_CATEGORIES = args.multiple_categories
+    SORT_BY_CATEGORY = args.sort_by_category
+    COMPILE_IMAGES = args.compile_images
+    FORCE_REFRESH_CACHE = args.force_refresh_cache
+    load_desktop_files()
+    format_xmenu(applications)
 
 # for app in applications:
 #     if app.name == 'Spotify':
