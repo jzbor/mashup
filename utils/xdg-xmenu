@@ -14,7 +14,7 @@ XDG_DATA_DIRS       = set(os.getenv('XDG_DATA_DIRS', '/usr/share:/usr/local/shar
 APPLICATION_DIRS    = set([os.path.join(dir, 'applications') for dir in XDG_DATA_DIRS.copy()]\
                         + [os.path.join(XDG_DATA_HOME, 'applications')])
 CACHE_DIR           = os.path.join(os.getenv('XDG_CACHE_HOME',
-                        os.path.join(os.getenv('HOME'), '.cache')), os.path.basename('__file__'))
+                        os.path.join(os.getenv('HOME'), '.cache')), os.path.basename(__file__))
 TERMINAL            = os.getenv('TERMINAL', 'xterm')
 ICON_SIZE           = 24
 IMAGEMAGICK_OPTIONS = ['-background', 'none', '-size', '{0}x{0}'.format(ICON_SIZE)]
