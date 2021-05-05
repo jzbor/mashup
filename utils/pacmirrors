@@ -19,12 +19,14 @@ REPOS_UPDATED=0
 
 manjaro () {
     print_header "Running Manjaro's pacman-mirrors"
+    check_dependencies pacman-mirrors sudo
     sudo pacman-mirrors --fasttrack || return
     REPOS_UPDATED=1
 }
 
 regular () {
     print_header "Downloading mirrorlist [$REPOSITORY]"
+    check_dependencies curl
     echo "Downloading from $MIRRORURL"
     curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" || exit 1
 
@@ -39,8 +41,10 @@ regular () {
     echo "This may take some while..."
     echo
     if [ "$REPOSITORY" = "arch" ]; then
+        check_dependencies rankmirrors-arch
         rankmirrors-arch -v "$TEMP_MIRRORLIST" | tee "$TEMP_MIRRORLIST.fastest" || exit 1
     else
+        check_dependencies rankmirrors
         rankmirrors -v "$TEMP_MIRRORLIST" | tee "$TEMP_MIRRORLIST.fastest" || exit 1
     fi
 
@@ -54,6 +58,7 @@ regular () {
             *) return ;;
         esac
     fi
+    check_dependencies sudo
     sudo mv -v "$TEMP_MIRRORLIST.fastest" "${DEST:-/etc/pacman.d/mirrorlist}" || exit 1
     REPOS_UPDATED=1
 }
@@ -101,5 +106,6 @@ esac
 
 if [ "$REPOS_UPDATED" = 1 ]; then
     print_header "Update Pacman database and packages"
+    check_dependencies pacman sudo
     sudo pacman -Syyu
 fi

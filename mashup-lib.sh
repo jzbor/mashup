@@ -17,13 +17,17 @@ die () {
     exit 1
 }
 
-check_dependency () {
-    command -v "$1" > /dev/null \
-        || die "Dependency $1 not installed"
+check_dependencies () {
+    for dep in "$@"; do
+        command -v "$dep" > /dev/null \
+            || die "Dependency $1 not installed"
+    done
 }
 
-check_optional_dependency () {
-    command -v "$1" > /dev/null
+check_optional_dependencies () {
+    for dep in "$@"; do
+        command -v "$dep" > /dev/null || return 1
+    done
 }
 
 env_is_set () {

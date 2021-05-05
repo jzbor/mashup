@@ -30,7 +30,7 @@ open_file () {
             || [ "$(file -i "$FILE" | cut -d' ' -f2)" = "inode/x-empty;" ]; then
         $EDITOR "$FILE"
     else
-        check_dependency xdg-open
+        check_dependencies xdg-open
         xdg-open "$FILE"
     fi
 }

@@ -1,9 +1,10 @@
 # Merely Another Shell Utility Project
 
 ## Guidelines:
-* There should be no dependencies other than `linux-utils` and `coreutils`
+* There should be no dependencies other than `linux-utils` and `coreutils` unless strictly necessary
     * An exception is the shell itself
     * Wrappers are excluded from this
+    * Check dependencies with `check_dependencies` or `check_optional_dependencies`
 * All tools should be distro or even OS independent
     * distro specific tools are excluded from this
 * The usage of coreutils should stick to POSIX definitions of their interfaces
