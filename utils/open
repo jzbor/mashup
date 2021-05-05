@@ -1,0 +1,56 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Open a file
+
+    -h  --help      This help message
+    -o  --output    Open output file of the given file"
+OPENOUTPUT=0
+
+
+open_output () {
+    case $FILE in
+        *.md | *.me | *.mom | *.ms | *.rmd | *.tex )
+            if [ -f "$FILEDIR/$BASENAME.pdf" ]; then
+                env_is_set READER || die "READER not set - unable to open $FILEDIR/$BASENAME.pdf"
+                $READER "$FILEDIR/$BASENAME.pdf"
+            elif [ -f "$FILEDIR/$BASENAME.html" ]; then
+                env_is_set BROWSER || die "BROWSER not set - unable to open $FILEDIR/$BASENAME.html"
+                $BROWSER "$FILEDIR/$BASENAME.html"
+            else
+                die "No output file found for $FILENAME"
+            fi
+            ;;
+    esac
+}
+
+open_file () {
+    if [ "$(file -i "$FILE" | cut -d' ' -f2 | sed 's/\/.*//')" = "text" ] \
+            || [ "$(file -i "$FILE" | cut -d' ' -f2)" = "inode/x-empty;" ]; then
+        $EDITOR "$FILE"
+    else
+        check_dependency xdg-open
+        xdg-open "$FILE"
+    fi
+}
+
+# parse arguments
+while :; do
+    case $1 in
+        -h | --help) print_help; exit ;;
+        -o | --output) OPENOUTPUT=1; shift ;;
+        *) break ;;
+    esac
+done
+
+for f in "$@"; do
+    load_file "$f"
+    if [ "$OPENOUTPUT" = 1 ]; then
+        open_output
+    else
+        open_file
+    fi
+done
+
+
