@@ -212,10 +212,11 @@ def format_xmenu(applications):
             for cat in categories.values():
                 set_icon(cat)
         for cat in categories.values():
-            print(cat.format())
-            for app in cat.apps:
-                if not app.nodisplay and app.onlyshowin == '':
-                    print('\t{}'.format(app.format()))
+            if len(cat.apps) > 0:
+                print(cat.format())
+                for app in cat.apps:
+                    if not app.nodisplay and app.onlyshowin == '':
+                        print('\t{}'.format(app.format()))
     else:
         for app in applications:
             print(app.format())
