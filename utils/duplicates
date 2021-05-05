@@ -36,4 +36,6 @@ else
     DIR="$1"
 fi
 
+echo "Looking for duplicates in $DIR:"
 find_duplicates "$DIR"
+echo "Done"
