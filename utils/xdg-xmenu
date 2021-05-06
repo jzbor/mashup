@@ -19,6 +19,7 @@ APPLICATION_DIRS    = set([os.path.join(dir, 'applications') for dir in XDG_DATA
 CACHE_DIR           = os.path.join(os.getenv('XDG_CACHE_HOME',
                         os.path.join(os.getenv('HOME'), '.cache')), os.path.basename(__file__))
 TERMINAL            = os.getenv('TERMINAL', 'xterm')
+EXECFILTER          = re.compile('%[a-zA-Z]')
 ICON_SIZE           = 24
 IMAGEMAGICK_OPTIONS = ['-background', 'none', '-size', '{0}x{0}'.format(ICON_SIZE)]
 MULTIPLE_CATEGORIES = True
@@ -85,7 +86,7 @@ def add_category(label, iconname, matchstr):
 def dict_to_application(dictionary:dict):
     app = Application()
     app.name = dictionary['Name']
-    app.execute = dictionary['Exec']
+    app.execute = re.sub(EXECFILTER, '', dictionary['Exec'])
     if 'GenericName' in dictionary:
         app.genname = dictionary['GenericName']
     if 'Icon' in dictionary and PRINT_IMAGES:
