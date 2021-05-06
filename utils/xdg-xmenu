@@ -27,6 +27,7 @@ PRINT_IMAGES        = True
 SORT_BY_CATEGORY    = True
 COMPILE_IMAGES      = True
 FORCE_REFRESH_CACHE = False
+USER_ICON_THEME     = ''
 
 imagefiles = []
 icontheme = ''
@@ -133,6 +134,8 @@ def get_image_files():
 
 
 def get_icon_theme():
+    if USER_ICON_THEME != '':
+        return USER_ICON_THEME
     path = os.path.join(XDG_CONFIG_HOME, 'gtk-3.0/settings.ini')
     if os.path.isfile(path):
         file = open(path, 'r')
@@ -232,6 +235,8 @@ def parse_args():
                         action='store_false', dest='sort_by_category')
     parser.add_argument('-f', '--force', help='force refresh image cache',
                         action='store_true', dest='force_refresh_cache')
+    parser.add_argument('-i', '--icontheme', help='select a custom icon theme', nargs=1, type=str,
+                        default=[''],  action='store', dest='user_icon_theme')
     parser.add_argument('-l', '--lazy', help='don\'t compile images on demand (this is way faster)',
                         action='store_false', dest='compile_images')
     parser.add_argument('-m', '--multiple', help='add applications to multiple categories',
@@ -262,5 +267,6 @@ if __name__ == '__main__':
     COMPILE_IMAGES = args.compile_images and args.print_images
     PRINT_IMAGES = args.print_images
     FORCE_REFRESH_CACHE = args.force_refresh_cache
+    USER_ICON_THEME = args.user_icon_theme[0]
     load_desktop_files()
     format_xmenu(applications)
