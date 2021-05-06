@@ -18,5 +18,5 @@
 * [Rick's sh (POSIX shell) tricks](https://www.etalabs.net/sh_tricks.html)
 
 ## LICENSING
-* `dococ` is provided under the [GPLv3 License](./LICENSE.gpl3)
+* `doctoc` is provided under the [GPLv3 License](./LICENSE.gpl3)
 * All other utils are provided under the [BSD-3-Clause License](./LICENSE)
