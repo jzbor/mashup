@@ -1,0 +1,66 @@
+#!/bin/sh
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Clean up cache (non-interactive)"
+DOTCACHE_EXPIRY=7
+ALL=1
+DOTCACHE=0
+PACMAN=0
+YES=0
+
+dotcache () {
+    print_header "Cleaning up ~/.cache"
+    if ! [ -d "$HOME/.cache" ]; then
+        echo "Nothing to do"
+        return 0
+    fi
+    before="$(du -sh "$HOME/.cache" | cut -f1)"
+    echo "Deleting files that have been unused longer than $DOTCACHE_EXPIRY days"
+    find ~/.cache/ -type f -atime "+$DOTCACHE_EXPIRY"
+    find ~/.cache/ -type f -atime "+$DOTCACHE_EXPIRY" -delete
+    after="$(du -sh "$HOME/.cache" | cut -f1)"
+    echo
+    echo "~/.cache: $before -> $after"
+}
+
+pacmancache () {
+    print_header "Pacman cache"
+
+    if [ "$UID" != 0 ]; then
+        echo "Run this as root user to clean pacman cache" > /dev/stderr
+        return
+    fi
+
+    if check_optional_dependency paccache "deleting outdated packages"; then
+        echo "Deleting cached packages older than 3 versions"
+        paccache -rvk3
+        echo "Deleting uninstalled cached packages older than 1 versions"
+        paccache -ruvk0
+    fi
+
+    if check_optional_dependencies_quiet yay; then
+        yay -Scc "$( [ "$YES" = 1 ] && echo "--noconfirm" )"
+    else
+        pacman -Scc "$( [ "$YES" = 1 ] && echo "--noconfirm" )"
+    fi
+}
+
+# parse arguments
+while :; do
+    case $1 in
+        -a | --all) ALL=1; shift ;;
+        -c | --cache) ALL=0; DOTCACHE=1; shift ;;
+        -h | --help) print_help; exit ;;
+        -p | --pacman) ALL=0; PACMAN=1; shift ;;
+        -y | --yes) YES=1; shift ;;
+        *) break ;;
+    esac
+done
+
+{ [ "$ALL" = 1 ] || [ "$DOTCACHE" = 1 ]; } \
+    && dotcache
+{ [ "$ALL" = 1 ] || [ "$PACMAN" = 1 ]; } \
+    && pacmancache
+
+exit 0

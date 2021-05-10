@@ -24,9 +24,20 @@ check_dependencies () {
     done
 }
 
-check_optional_dependencies () {
+check_optional_dependency () {
+    if ! command -v "$1" > /dev/null; then
+        printf "$CC_RED%s not found.$CC_RESET\n" "$1" > /dev/stderr
+        [ -n "$2" ] \
+            && printf "$CC_RED%s is required for: %s$CC_RESET\n" "$1" "$2" > /dev/stderr
+        return 1
+    fi
+    return 0
+}
+
+check_optional_dependencies_quiet () {
     for dep in "$@"; do
-        command -v "$dep" > /dev/null || return 1
+        command -v "$dep" > /dev/null \
+            || return 1
     done
 }
 
