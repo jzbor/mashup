@@ -27,7 +27,7 @@ dotcache () {
 pacmancache () {
     print_header "Pacman cache"
 
-    if [ "$UID" != 0 ]; then
+    if [ "$USER" != root ]; then
         echo "Run this as root user to clean pacman cache" > /dev/stderr
         return
     fi
