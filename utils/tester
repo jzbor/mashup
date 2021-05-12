@@ -6,4 +6,12 @@
 . __LIB_FILE__ || exit 1
 
 print_header "This is a header"
+print_subheader "This is a subheader"
+print_arrow "This is an arrow item"
+ask "How would you answer this question?"
+echo "Return: $?"
+ask "Are you sure?" n
+echo "Return: $?"
+ask "Really sure?" y
+echo "Return: $?"
 die "Successfully dying"

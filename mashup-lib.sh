@@ -3,17 +3,52 @@
 # author: jzbor
 #
 
-CC_BLUE="\e[0;94m"
-CC_GREEN="\e[0;92m"
-CC_RED="\e[0;91m"
-CC_WHITE="\e[0;97m"
-CC_BLUE_BG="\e[0;104m${expand_bg}"
-CC_EXPAND_BG="\e[K"
-CC_GREEN_BG="\e[0;102m${expand_bg}"
-CC_RED_BG="\e[0;101m${expand_bg}"
+CC_BLACK="\e[0;30m"
+CC_RED="\e[0;31m"
+CC_GREEN="\e[0;32m"
+CC_YELLOW="\e[0;33m"
+CC_BLUE="\e[0;34m"
+CC_PURPLE="\e[0;35m"
+CC_CYAN="\e[0;36m"
+CC_WHITE="\e[0;37m"
+
+CC_xBLACK="\e[0;90m"
+CC_xRED="\e[0;91m"
+CC_xGREEN="\e[0;92m"
+CC_xYELLOW="\e[0;93m"
+CC_xBLUE="\e[0;94m"
+CC_xPURPLE="\e[0;95m"
+CC_xCYAN="\e[0;96m"
+CC_xWHITE="\e[0;97m"
+
 CC_BOLD="\e[1m"
 CC_RESET="\e[0m"
 CC_ULINE="\e[4m"
+
+ask () {
+    [ "$1" = "" ] && return 2
+    printf "$CC_BLUE::$CC_RESET %s " "$1"
+    case "$2" in
+        y | yes | Y | Yes | YES)
+            printf "$CC_GREEN[Y/n] $CC_RESET" ;;
+        *)
+            printf "$CC_GREEN[y/N] $CC_RESET" ;;
+    esac
+    read -r answer
+    case $answer in
+        y | yes | Y | Yes | YES)
+            return 0 ;;
+        n | no | N | No | NO)
+            return 1 ;;
+        *)  case "$2" in
+                y | yes | Y | Yes | YES)
+                    return 0 ;;
+                *)
+                    return 1 ;;
+            esac
+            ;;
+    esac
+}
 
 die () {
     printf "$CC_RED%s$CC_RESET\n" "$1" > /dev/stderr
@@ -71,11 +106,19 @@ check_file () {
     [ -f "${FILE:-$1}" ] || die "'${FILE:-$1}' is not a file"
 }
 
+print_arrow () {
+    printf "$CC_GREEN=> %s$CC_RESET\n" "$1"
+}
+
 print_header () {
-    printf "\n$CC_BLUE=== %s ===$CC_RESET\n" "$1"
+    printf "\n$CC_BLUE$CC_BOLD=== %s ===$CC_RESET\n" "$1"
 }
 
 print_help () {
     print_header "Help: $(basename "$0")"
     printf "\n%s\n\n" "$HELPTEXT" | fmt
+}
+
+print_subheader () {
+    printf "\n$CC_CYAN$CC_BOLD$CC_ULINE   %s   $CC_RESET\n" "$1"
 }
