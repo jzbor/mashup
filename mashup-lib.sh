@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# author: jzbor
+#
 
 CC_BLUE="\e[0;94m"
 CC_GREEN="\e[0;92m"

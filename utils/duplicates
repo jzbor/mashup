@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# author: jzbor
+#
 # From https://www.reddit.com/r/linuxquestions/comments/ham5i6/find_duplicate_files/
 # Dependencies: find xargs
 

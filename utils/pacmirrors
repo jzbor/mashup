@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# author: jzbor
+#
 
 . __LIB_FILE__ || exit 1
 
