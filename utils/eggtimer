@@ -30,13 +30,14 @@ done
 
 SECONDS=0
 "$@"
+ret="$?"
 duration="$SECONDS"
 formated_time="$(($duration / 60)) minutes and $(($duration % 60)) seconds"
 if [ "$TIME" = 1 ]; then
     echo "$(basename "$0"): $formated_time elapsed."
 fi
 if [ "$NOTIFY" = 1 ] && check_optional_dependency notify-send "sending notifications"; then
-    notify-send -a "$(basename "$0"): $1" "Finished after $formated_time."
+    notify-send -a "$(basename "$0"): $1" "Finished after $formated_time. (ret: $ret)"
 fi
 if [ "$SOUND" = 1 ] && check_optional_dependency ffplay "playing a sound after finishing"; then
     if [ -f "$NOTIFICATION_SOUND" ]; then
