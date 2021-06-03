@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# author: jzbor
+#
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Refreshes mirrors of pacman based distros
+
+    -h  --help              This help message
+    -n  --nonotify          Don't display notification
+    -s  --nosound           Don't play sound
+    -t  --notime            Don't print time elapsed "
+
+NOTIFY=1
+SOUND=1
+TIME=1
+NOTIFICATION_SOUND="/usr/share/sounds/freedesktop/stereo/complete.oga"
+
+# parse arguments
+while :; do
+    case $1 in
+        -h | --help) print_help; exit ;;
+        -n | --nonotify) NOTIFY=0; shift ;;
+        -s | --nosound) SOUND=0; shift ;;
+        -t | --notime) TIME=0; shift ;;
+        *) break ;;
+    esac
+done
+
+SECONDS=0
+"$@"
+duration="$SECONDS"
+formated_time="$(($duration / 60)) minutes and $(($duration % 60)) seconds"
+if [ "$TIME" = 1 ]; then
+    echo "$(basename "$0"): $formated_time elapsed."
+fi
+if [ "$NOTIFY" = 1 ] && check_optional_dependency notify-send "sending notifications"; then
+    notify-send -a "$(basename "$0"): $1" "Finished after $formated_time."
+fi
+if [ "$SOUND" = 1 ] && check_optional_dependency ffplay "playing a sound after finishing"; then
+    if [ -f "$NOTIFICATION_SOUND" ]; then
+        setsid ffplay -nodisp -autoexit "$NOTIFICATION_SOUND" 2> /dev/null &
+    else
+        echo "Notification sound ($NOTIFICATION_SOUND) not available"
+    fi
+fi
+
+
