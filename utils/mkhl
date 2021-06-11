@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# author: jzbor
+#
+
+. __LIB_FILE__ || exit 1
+
+formatstr="<html><head>\n<meta http-equiv=\"refresh\" content=\"0;URL='%s\'\" />\n</head></html>\n"
+
+ [ -z "$1" ] && die "Please specify an URL"
+
+if [ -z "$2" ]; then
+    printf "$formatstr" "$1"
+else
+    printf "$formatstr" "$1" > "$2"
+fi
+
