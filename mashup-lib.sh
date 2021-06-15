@@ -116,7 +116,7 @@ print_header () {
 
 print_help () {
     print_header "Help: $(basename "$0")"
-    printf "\n%s\n\n" "$HELPTEXT" | fmt
+    printf "\n%s\n\n" "$HELPTEXT" | fmt -s
 }
 
 print_subheader () {
