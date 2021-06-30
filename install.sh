@@ -14,6 +14,7 @@ INSTALL=1
 UNINSTALL=0
 LIBRARY=0
 STANDALONE=0
+FMUTILS=0
 
 die () {
     echo "$1" > /dev/stderr
@@ -26,9 +27,20 @@ install_all () {
     done
 }
 
+install_fmutils () {
+    for fmutil in $(find "$LOCAL_DIR/fmutils/" -executable -type f); do
+        install_util "$fmutil"
+    done
+    for manpage in $(find "$LOCAL_DIR/fmutils/" -name *.1); do
+        printf "Installing manpage: %s... " "$manpage"
+        install -Dm 644 "$manpage" "$PREFIX/share/man/man1/"
+        printf "Done\n"
+    done
+}
+
 install_lib () {
     printf "Installing lib file %s... " "$LIB_FILE_NAME"
-    install -Dm 555 "$LIB_FILE_LOCAL" "$LIB_FILE"
+    install -Dm 644 "$LIB_FILE_LOCAL" "$LIB_FILE"
     printf "Done\n"
 }
 
@@ -48,17 +60,24 @@ install_util () {
 print_help () {
     echo "Install mashup utils
 
--a  --all           Add all utils to targets
--i  --install       Install util(s)
--r  --remove        Remove/uninstall util(s)
--l  --library       Add library to targets
+-a  --all           Add all (regular) utils to targets
+-f  --fmutils       Add fmutils to targets
 -h  --help          This help message
+-i  --install       Install util(s)
+-l  --library       Add library to targets
+-r  --remove        Remove/uninstall util(s)
 -s  --standalone    Compile library into each script "
 }
 
 uninstall_all () {
     for util in $UTILS; do
         uninstall_util "$util"
+    done
+}
+
+uninstall_fmutils() {
+    for fmutil in $(find "$LOCAL_DIR/fmutils/" -executable -type f); do
+        uninstall_util "$fmutil"
     done
 }
 
@@ -87,6 +106,7 @@ uninstall_util () {
 while :; do
     case $1 in
         -a | --all) ALL=1; shift ;;
+        -f | --fmuils) FMUTILS=1; shift ;;
         -h | --help) print_help; exit ;;
         -i | --install) INSTALL=1; UNINSTALL=0; shift ;;
         -l | --library) LIBRARY=1; shift ;;
@@ -107,6 +127,7 @@ if [ "$INSTALL" = 1 ]; then
         done
         [ "$LIBRARY" = 1 ] && install_lib
     fi
+    [ "$FMUTILS" = 1 ] && install_fmutils
 elif [ "$UNINSTALL" = 1 ]; then
     if [ "$ALL" = 1 ]; then
         uninstall_all
@@ -118,6 +139,7 @@ elif [ "$UNINSTALL" = 1 ]; then
         done
         [ "$LIBRARY" = 1 ] && uninstall_lib
     fi
+    [ "$FMUTILS" = 1 ] && uninstall_fmutils
 else
     die "No actions specified"
 fi

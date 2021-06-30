@@ -1,0 +1,3 @@
+[submodule "fmutils"]
+	path = fmutils
+	url = https://github.com/phillbush/fmutils
