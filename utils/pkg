@@ -19,13 +19,12 @@ operation="$1"
 get_pkgmgr () {
     if command -v yay > /dev/null; then
         echo yay
-        return
     elif command -v aura > /dev/null; then
         echo aura
-        return
     elif command -v pacman > /dev/null; then
         echo pacman
-        return
+    elif command -v xbps-install > /dev/null; then
+        echo xbps
     else
         die "No supported package manager found"
     fi
@@ -33,7 +32,7 @@ get_pkgmgr () {
 
 pkgmgr_aura () {
     case "$operation" in
-        install | '')
+        install)
             echo "Operation 'install' for package manager 'aura' only supported for repo packages" > /dev/stderr
             sudo aura -Syu $@
             ;;
@@ -42,27 +41,37 @@ pkgmgr_aura () {
             echo "Operation 'install' for package manager 'aura' only supported for repo packages" > /dev/stderr
             aura -Ss $@
             ;;
-        update) sudo sh -c "aura -Syu && aura -Au" ;;
+        update | '') sudo sh -c "aura -Syu && aura -Au" ;;
         *) die "Operation '$operation' not supported" ;;
     esac
 }
 
 pkgmgr_yay () {
     case "$operation" in
-        install | '') yay -Syu $@ ;;
+        install) yay -Syu $@ ;;
         remove) yay -Rsnu $@ ;;
         search) yay -Ss $@ ;;
-        update) yay -Syu ;;
+        update | '') yay -Syu ;;
         *) die "Operation '$operation' not supported" ;;
     esac
 }
 
 pkgmgr_pacman () {
     case "$operation" in
-        install | '') sudo pacman -Syu $@ ;;
+        install) sudo pacman -Syu $@ ;;
         remove) sudo pacman -Rsnu $@ ;;
         search) pacman -Ss $@ ;;
-        update) sudo pacman -Syu ;;
+        update | '') sudo pacman -Syu ;;
+        *) die "Operation '$operation' not supported" ;;
+    esac
+}
+
+pkgmgr_xbps () {
+    case "$operation" in
+        install) sudo xbps-install -Su $@ ;;
+        remove) sudo xbps-remove -o $@ ;;
+        search) sudo xbps-query -Rs $@ ;;
+        update | '') sudo xbps-install -Su ;;
         *) die "Operation '$operation' not supported" ;;
     esac
 }
@@ -79,4 +88,5 @@ case $pkgmgr in
     aura) pkgmgr_aura $@ ;;
     yay) pkgmgr_yay $@ ;;
     pacman) pkgmgr_pacman $@ ;;
+    xbps) pkgmgr_xbps $@ ;;
 esac
