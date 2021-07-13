@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# author: jzbor
+#
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Universal frontend for different distribution package managers
+
+    help    Print this help text
+    install Install one or multiple packages
+    remove  Remove one or multiple packages
+    update  Update your system"
+
+operation="$1"
+[ -n "$1" ] && shift
+
+
+get_pkgmgr () {
+    if command -v yay > /dev/null; then
+        echo yay
+        return
+    elif command -v aura > /dev/null; then
+        echo aura
+        return
+    elif command -v pacman > /dev/null; then
+        echo pacman
+        return
+    else
+        die "No supported package manager found"
+    fi
+}
+
+pkgmgr_aura () {
+    case "$operation" in
+        install | '')
+            echo "Operation 'install' for package manager 'aura' only supported for repo packages" > /dev/stderr
+            sudo aura -Syu $@
+            ;;
+        remove) sudo aura -Rsnu $@ ;;
+        search)
+            echo "Operation 'install' for package manager 'aura' only supported for repo packages" > /dev/stderr
+            aura -Ss $@
+            ;;
+        update) sudo sh -c "aura -Syu && aura -Au" ;;
+        *) die "Operation '$operation' not supported" ;;
+    esac
+}
+
+pkgmgr_yay () {
+    case "$operation" in
+        install | '') yay -Syu $@ ;;
+        remove) yay -Rsnu $@ ;;
+        search) yay -Ss $@ ;;
+        update) yay -Syu ;;
+        *) die "Operation '$operation' not supported" ;;
+    esac
+}
+
+pkgmgr_pacman () {
+    case "$operation" in
+        install | '') sudo pacman -Syu $@ ;;
+        remove) sudo pacman -Rsnu $@ ;;
+        search) pacman -Ss $@ ;;
+        update) sudo pacman -Syu ;;
+        *) die "Operation '$operation' not supported" ;;
+    esac
+}
+
+if [ "$operation" = help ]; then
+    print_help
+    exit
+fi
+
+pkgmgr="$(get_pkgmgr)"
+print_arrow "Using package manager: $pkgmgr"
+
+case $pkgmgr in
+    aura) pkgmgr_aura $@ ;;
+    yay) pkgmgr_yay $@ ;;
+    pacman) pkgmgr_pacman $@ ;;
+esac
