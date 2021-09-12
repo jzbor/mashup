@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# author: jzbor
+#
+
+. __LIB_FILE__ || exit 1
+
+HELPTEXT="Move files/links
+
+    -h  --help      print this message
+    -f  --force     ignore problems if possible
+
+    exchange <path_to_link>             swap linked file with its link
+    resolve <path_to_link>              resolve link by pulling the file to the links location
+    push <path_to_file> <path_to_dest>  move file to destination and create symlink in old location"
+
+FORCE=0
+
+exchange () {
+    origlink="$1"
+    symlink_or_die "$origlink"
+    origfile="$(readlink -e "$origlink")" || die "Unable to read link '$origlink'"
+    rm -v "$origlink"
+    mv -v "$origfile" "$origlink"
+    ln -sv "$origlink" "$origfile"
+}
+
+push () {
+    origfile="$1"
+    [ -e "$origfile" ] || die "File doesn't exist: $origfile"
+    destination="$2"
+    [ -e "$destination" ] && [ "$FORCE" = 0 ] \
+        && die "Destination file already exists: $destination"
+    mv -v "$origfile" "$destination"
+    ln -sv "$destination" "$origfile"
+}
+
+resolve () {
+    origlink="$1"
+    symlink_or_die "$origlink"
+    origfile="$(readlink -e "$origlink")" || die "Unable to read link '$origlink'"
+    rm -v "$origlink"
+    mv -v "$origfile" "$origlink"
+}
+
+symlink_or_die () {
+    [ -L "$1" ] || die "'$1' is not a symlink"
+}
+
+# parse arguments
+while :; do
+    case $1 in
+        -f | --force) FORCE=1; exit ;;
+        -h | --help) print_help; exit ;;
+        *) break ;;
+    esac
+done
+
+case $1 in
+    exchange)
+        exchange "$2" ;;
+    push)
+        push "$2" "$3" ;;
+    resolve)
+        resolve "$2" ;;
+    '')
+        die "Please specify an operation (-h for help)" ;;
+    *)
+        die "Unknown operation: '$1'" ;;
+esac
+
+
