@@ -16,11 +16,19 @@ open_output () {
     case $FILE in
         *.md | *.me | *.mom | *.ms | *.rmd | *.tex )
             if [ -f "$FILEDIR/$BASENAME.pdf" ]; then
-                env_is_set READER || die "READER not set - unable to open $FILEDIR/$BASENAME.pdf"
-                $READER "$FILEDIR/$BASENAME.pdf"
+                if env_is_set READER; then
+                    $READER "$FILEDIR/$BASENAME.pdf"
+                else
+                    eprint "READER not set - falling back to xdg-open"
+                    xdg-open "$FILEDIR/$BASENAME.pdf"
+                fi
             elif [ -f "$FILEDIR/$BASENAME.html" ]; then
-                env_is_set BROWSER || die "BROWSER not set - unable to open $FILEDIR/$BASENAME.html"
-                $BROWSER "$FILEDIR/$BASENAME.html"
+                if env_is_set BROWSER; then
+                    $BROWSER "$FILEDIR/$BASENAME.html"
+                else
+                    eprint "BROWSER not set - falling back to xdg-open"
+                    xdg-open "$FILEDIR/$BASENAME.html"
+                fi
             else
                 die "No output file found for $FILENAME"
             fi

@@ -10,9 +10,12 @@ UTILS = cleancache docconv doctoc duplicates eggtimer mkhl open pacmirrors pkg \
 FMUTILS = bulkrename pick preview skel trash unpack unpreview untrash
 MANPAGES_FMUTILS = $(subst fmutils/,,$(shell find fmutils -name *.1))
 
-all: cleancache
+all: ${UTILS}
 
-$(UTILS): %: utils/% ${LIB_FILE_NAME}
+out:
+	mkdir out
+
+$(UTILS): %: utils/% ${LIB_FILE_NAME} out
 	cp "utils/$@" "out/$@"
 ifdef DYNAMIC
 	sed -i "s|__LIB_FILE__|${LIB_FILE_PATH}|g" "out/$@"
@@ -20,7 +23,7 @@ else
 	sed -i -e "/__LIB_FILE__/r ${LIB_FILE_NAME}" -e '//d' "out/$@"
 endif
 
-$(FMUTILS): %: fmutils/%
+$(FMUTILS): %: fmutils/% out
 	cp "fmutils/$@" "out/$@"
 
 clean:

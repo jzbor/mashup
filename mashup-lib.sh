@@ -93,6 +93,10 @@ env_def_true () {
     (! env_is_set "$1") || [ "$(eval echo "\$$1")" = "1" ]
 }
 
+eprint () {
+    printf "$CC_RED%s$CC_RESET\n" "$1" > /dev/stderr
+}
+
 load_file () {
     FILE=$(readlink -f "$1" 2> /dev/null)
     FILEDIR=$(dirname "$FILE")
