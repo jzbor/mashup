@@ -10,6 +10,7 @@ HELPTEXT="Refreshes mirrors of pacman based distros
     -d  --dontreplace   Don't replace current mirrorlist
     -e  --edit          Edit mirrorlist before ranking
     -h  --help          This help message
+    -l  --local         Use local list instead of fetching online
     -m  --main          Only fetch main mirrors (no Arch mirrors on Artix)
     -r  --replace       Replace current mirrorlist"
 TEMP_MIRRORLIST="${TEMP:-/tmp}/pacmirrorlist"
@@ -18,6 +19,7 @@ MAIN_ONLY=0
 REPLACE=0
 DONT_REPLACE=0
 REPOS_UPDATED=0
+LOCAL=0
 
 
 manjaro () {
@@ -28,16 +30,25 @@ manjaro () {
 }
 
 regular () {
-    print_header "Downloading mirrorlist [$REPOSITORY]"
-    check_dependencies curl
-    echo "Downloading from $MIRRORURL"
-    curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" || exit 1
+    if [ "$LOCAL" = 1 ] || [ -z "$MIRRORURL" ]; then
+        [ "$LOCAL" != 1 ] && [ -z "$MIRRORURL" ] \
+            && echo "No mirrorlist available for '$REPOSITORY' - falling back to local mirrorlist"
+        echo "Loading local mirrorlist"
+        cp "${DEST:-/etc/pacman.d/mirrorlist}"  "$TEMP_MIRRORLIST" \
+            || die "No mirrorlist found in ${DEST:-/etc/pacman.d/mirrorlist}"
+    else
+        print_header "Downloading mirrorlist [$REPOSITORY]"
+        check_dependencies curl
+        echo "Downloading from $MIRRORURL"
+        curl -o "$TEMP_MIRRORLIST" "$MIRRORURL" \
+            || die "Unable to download mirrorlist from $MIRRORURL"
+    fi
 
     if [ "$EDIT" = 1 ]; then
         ${EDITOR:?} "$TEMP_MIRRORLIST"
     else
         echo "Using all available mirrors for ranking"
-        sed -i 's/#S/S/g' "$TEMP_MIRRORLIST" || exit 1
+        sed -i 's/^#//g' "$TEMP_MIRRORLIST" || exit 1
     fi
 
     print_header "Ranking mirrors"
@@ -73,6 +84,7 @@ while :; do
         -d | --dontreplace) DONT_REPLACE=1; shift ;;
         -e | --edit) EDIT=1; shift ;;
         -h | --help) print_help; exit ;;
+        -l | --local) LOCAL=1; shift ;;
         -m | --main) MAIN_ONLY=1; shift ;;
         -r | --replace) REPLACE=1; shift ;;
         *) break ;;
@@ -100,6 +112,10 @@ case $ID in
         ;;
     arch)
         MIRRORURL="https://archlinux.org/mirrorlist/all/https/"
+        regular
+        ;;
+    archarm)
+        MIRRORURL=""
         regular
         ;;
     *)
